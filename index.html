@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문화프로그램 기획 지원 대시보드</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="hero">
+            <p class="eyebrow">Library Program Dashboard</p>
+            <h1>지역 맞춤형 도서관 문화프로그램 기획 도구</h1>
+            <p class="hero-copy">도서관 선택부터 주제 분석, 유사 사례 추천까지 한 흐름으로 확인할 수 있습니다.</p>
+        </header>
+
+        <div class="stepper" role="tablist" aria-label="기획 단계">
+            <button class="step-item active" data-step="1"><span class="step-number">1</span><span>도서관 선택</span></button>
+            <button class="step-item" data-step="2"><span class="step-number">2</span><span>강점 주제 분석</span></button>
+            <button class="step-item" data-step="3"><span class="step-number">3</span><span>기획안 구성</span></button>
+        </div>
+
+        <section class="panel active" id="step-1">
+            <div class="panel-header">
+                <h2>1. 대상 도서관 선택</h2>
+                <p>지역과 도서관을 먼저 정하면 다음 단계로 이어집니다.</p>
+            </div>
+            <div class="selector-grid">
+                <label class="select-field">
+                    <span>시/도</span>
+                    <select id="sido-select"><option value="">시/도 선택</option></select>
+                </label>
+                <label class="select-field">
+                    <span>시/군/구</span>
+                    <select id="sigungu-select" disabled><option value="">시/군/구 선택</option></select>
+                </label>
+                <label class="select-field">
+                    <span>도서관</span>
+                    <select id="library-select" disabled><option value="">도서관 선택</option></select>
+                </label>
+            </div>
+            <div class="panel-footer">
+                <div id="selection-summary" class="selection-summary">선택된 지역 정보가 여기에 표시됩니다.</div>
+                <button id="go-step2-btn" class="primary-btn" disabled>다음 단계로</button>
+            </div>
+        </section>
+
+        <section class="panel" id="step-2">
+            <div class="panel-header">
+                <h2>2. 주제 분석</h2>
+                <p>강점 주제, 유사 사례, 이달의 키워드를 함께 확인한 뒤 관심 주제를 선택해 주세요.</p>
+            </div>
+            <div class="analysis-grid">
+                <div class="analysis-card">
+                    <div class="analysis-card-head">
+                        <h3>강점 주제 분석</h3>
+                        <span>선택 가능</span>
+                    </div>
+                    <div class="topic-grid">
+                        <div class="topic-card">
+                            <div class="topic-card-head">
+                                <h3>📍 지역 강점 주제</h3>
+                                <span>점수 비율</span>
+                            </div>
+                            <div id="region-topics" class="bar-list">선택 대기 중...</div>
+                        </div>
+                        <div class="topic-card">
+                            <div class="topic-card-head">
+                                <h3>🏛️ 도서관 강점 주제</h3>
+                                <span>연계 추천</span>
+                            </div>
+                            <div id="library-topics" class="bar-list">선택 대기 중...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="analysis-card">
+                    <div class="analysis-card-head">
+                        <h3>추가 참고 자료</h3>
+                        <span>기획안 반영</span>
+                    </div>
+                    <div class="insight-grid">
+                        <div class="info-card">
+                            <h3>유사 지역 사례</h3>
+                            <div id="similar-cases" class="case-list">데이터를 불러오는 중입니다...</div>
+                        </div>
+                        <div class="info-card">
+                            <h3>이달의 급상승 키워드</h3>
+                            <div id="trending-keywords" class="keyword-list">데이터를 불러오는 중입니다...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button id="back-step1-btn" class="ghost-btn">이전</button>
+                <button id="go-step3-btn" class="primary-btn" disabled>기획안 생성하기</button>
+            </div>
+        </section>
+
+        <section class="panel" id="step-3">
+            <div class="panel-header">
+                <h2>3. 맞춤 기획안 생성</h2>
+                <p>선택한 주제와 참고 자료를 바탕으로 GPT가 맞춤형 기획안을 제안합니다.</p>
+            </div>
+            <div id="plan-preview" class="plan-preview">
+                <div class="empty-state">기획안 생성 버튼을 누르면 제안이 여기에 표시됩니다.</div>
+            </div>
+            <div class="panel-footer">
+                <button id="back-step2-btn" class="ghost-btn">이전</button>
+                <button id="start-planning-btn" class="primary-btn" disabled>기획안 생성</button>
+            </div>
+        </section>
+    </div>
+
+    <button id="chat-toggle" class="chat-toggle" aria-label="AI 기획 어시스턴트 열기">AI</button>
+    <div id="chat-widget" class="chat-widget" aria-live="polite">
+        <div class="chat-header">
+            <span>AI 기획 어시스턴트</span>
+            <button id="chat-close-btn" class="icon-btn" aria-label="닫기">×</button>
+        </div>
+        <div class="chat-body" id="chat-messages">
+            <div class="msg ai-msg">도서관과 주제를 선택하고 기획안 생성을 시작해 주세요.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="원하는 방향을 입력해 주세요" disabled>
+            <button id="chat-send-btn" disabled>전송</button>
+        </div>
+    </div>
+
+    <div id="api-key-panel" class="api-key-panel" style="display:none;">
+        <label for="api-key-input">OpenAI API 키</label>
+        <input type="password" id="api-key-input" placeholder="sk-..." value="">
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

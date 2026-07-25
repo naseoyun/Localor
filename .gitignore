@@ -1,0 +1,13 @@
+# 가상환경 및 캐시 (필수 제외)
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# 보안 민감 파일 (API 키 포함)
+.env
+
+# 기타 OS/IDE 임시 파일
+.DS_Store
+Thumbs.db
+.vscode/
