@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent
 def load_env():
     env_path = ROOT / '.env'
     if env_path.exists():
-        with open(env_path, 'r', encoding='utf-8') as f:
+        with open(env_path, 'r', encoding='utf-8-sig') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#') and '=' in line:
@@ -108,7 +108,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def _get_api_key(self, payload):
-        return payload.get('apiKey') or os.getenv('OPENAI_API_KEY') or DEFAULT_OPENAI_API_KEY
+        return payload.get('apiKey') or os.getenv('OPENAI_API_KEY')
 
     def _handle_generate_plan(self):
         payload = self._read_json()
