@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent
 def load_env():
     env_path = ROOT / '.env'
     if env_path.exists():
-        with open(env_path, 'r', encoding='utf-8') as f:
+        with open(env_path, 'r', encoding='utf-8-sig') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#') and '=' in line:
