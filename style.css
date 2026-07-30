@@ -152,7 +152,8 @@ button, select, input { font: inherit; }
     gap: 16px;
     margin-top: 18px;
 }
-.topic-grid, .insight-grid {
+.wide-card { margin-top: 16px; }
+.topic-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
@@ -189,6 +190,12 @@ button, select, input { font: inherit; }
 }
 .topic-card-head h3, .info-card h3 { margin: 0; color: var(--teal); }
 .bar-list, .case-list, .keyword-list { display: flex; flex-direction: column; gap: 10px; }
+#similar-cases.case-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+#similar-cases .case-list-heading { grid-column: 1 / -1; }
 .topic-bar {
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -338,6 +345,12 @@ button, select, input { font: inherit; }
 }
 .topic-card-head h3, .info-card h3 { margin: 0; color: var(--teal); }
 .bar-list, .case-list, .keyword-list { display: flex; flex-direction: column; gap: 10px; }
+#similar-cases.case-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+#similar-cases .case-list-heading { grid-column: 1 / -1; }
 .topic-bar {
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -481,37 +494,8 @@ button, select, input { font: inherit; }
     cursor: pointer;
 }
 .chat-input-area button:disabled { background: #c8bbb0; cursor: not-allowed; }
-.api-key-panel {
-    position: fixed;
-    left: 24px;
-    bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: white;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 8px 12px;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.14);
-    z-index: 1300;
-    max-width: calc(100vw - 48px);
-}
-.api-key-panel label {
-    font-size: 0.9rem;
-    color: var(--muted);
-    font-weight: 700;
-    flex-shrink: 0;
-}
-.api-key-panel input {
-    border: 1px solid #e4d8c4;
-    border-radius: 999px;
-    outline: none;
-    min-width: 260px;
-    padding: 8px 12px;
-    background: #fffdf9;
-}
 @media (max-width: 860px) {
-    .selector-grid, .analysis-grid, .topic-grid, .insight-grid { grid-template-columns: 1fr; }
+    .selector-grid, .analysis-grid, .topic-grid { grid-template-columns: 1fr; }
     .panel { padding: 18px; }
 }
 @media (max-width: 560px) {

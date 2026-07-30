@@ -54,7 +54,7 @@
             <div class="analysis-grid">
                 <div class="analysis-card">
                     <div class="analysis-card-head">
-                        <h3>강점 주제 분석</h3>
+                        <h3>주제 분석</h3>
                         <span>선택 가능</span>
                     </div>
                     <div class="topic-grid">
@@ -76,22 +76,20 @@
                 </div>
                 <div class="analysis-card">
                     <div class="analysis-card-head">
-                        <h3>추가 참고 자료</h3>
+                        <h3>이달의 급상승 키워드</h3>
                         <span>기획안 반영</span>
                     </div>
-                    <div class="insight-grid">
-                        <div class="info-card">
-                            <h3>유사 지역 사례</h3>
-                            <p class="card-hint">먼저 원하는 테마를 선택하면, 유사 지역의 강좌 중 해당 테마에서 경쟁률이 높은 사례를 보여줍니다.</p>
-                            <div id="theme-selector" class="keyword-list">데이터를 불러오는 중입니다...</div>
-                            <div id="similar-cases" class="case-list">데이터를 불러오는 중입니다...</div>
-                        </div>
-                        <div class="info-card">
-                            <h3>이달의 급상승 키워드</h3>
-                            <div id="trending-keywords" class="keyword-list">데이터를 불러오는 중입니다...</div>
-                        </div>
-                    </div>
+                    <div id="trending-keywords" class="keyword-list">데이터를 불러오는 중입니다...</div>
                 </div>
+            </div>
+            <div class="analysis-card wide-card">
+                <div class="analysis-card-head">
+                    <h3>유사 지역 사례</h3>
+                    <span>기획안 반영</span>
+                </div>
+                <p class="card-hint">먼저 원하는 테마를 선택하면, 유사 지역의 강좌 중 해당 테마에서 경쟁률이 높은 사례를 보여줍니다.</p>
+                <div id="theme-selector" class="keyword-list">데이터를 불러오는 중입니다...</div>
+                <div id="similar-cases" class="case-list">데이터를 불러오는 중입니다...</div>
             </div>
             <div class="panel-footer">
                 <button id="back-step1-btn" class="ghost-btn">이전</button>
@@ -127,11 +125,6 @@
             <input type="text" id="chat-input" placeholder="원하는 방향을 입력해 주세요" disabled>
             <button id="chat-send-btn" disabled>전송</button>
         </div>
-    </div>
-
-    <div id="api-key-panel" class="api-key-panel" style="display:none;">
-        <label for="api-key-input">OpenAI API 키</label>
-        <input type="password" id="api-key-input" placeholder="sk-..." value="">
     </div>
 
     <script src="script.js"></script>

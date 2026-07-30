@@ -114,7 +114,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         payload = self._read_json()
         api_key = self._get_api_key(payload)
         if not api_key:
-            self._send_json({'error': 'OpenAI API 키가 필요합니다. 입력창에 키를 넣어 주세요.'}, status=400)
+            self._send_json({'error': 'OpenAI API 키가 필요합니다. .env 파일에 OPENAI_API_KEY를 설정한 뒤 서버를 다시 실행해 주세요.'}, status=400)
             return
 
         prompt = payload.get('prompt', '')
@@ -214,7 +214,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         payload = self._read_json()
         api_key = self._get_api_key(payload)
         if not api_key:
-            self._send_json({'error': 'OpenAI API 키가 필요합니다. 입력창에 키를 넣어 주세요.'}, status=400)
+            self._send_json({'error': 'OpenAI API 키가 필요합니다. .env 파일에 OPENAI_API_KEY를 설정한 뒤 서버를 다시 실행해 주세요.'}, status=400)
             return
 
         plan = payload.get('plan', {})
