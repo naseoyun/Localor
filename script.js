@@ -21,7 +21,7 @@
 const state = {
     rawData: { libs: {}, regionScores: [], libScores: [], similar: [], courses: [], keywords: [] },
     selection: { sido: '', sigungu: '', library: '' },
-    choices: { topics: [], case: null, keywords: [] },
+    choices: { topics: [], theme: null, case: null, keywords: [] },
     plan: { title: '', summary: '', target: '', concept: '', flow: '' },
     planGenerated: false,
     step: 1
@@ -71,7 +71,7 @@ async function init() {
         state.rawData.regionScores = await loadCsv('./data/시군구별_지역특색_추출결과.csv');
         state.rawData.libScores = await loadCsv('./data/도서관별_강점주제_추출결과.csv');
         state.rawData.similar = await loadCsv('./data/top5_similar_최종_상세근거포함.csv');
-        state.rawData.courses = await loadCsv('./data/03_통합_분석용_official만.csv');
+        state.rawData.courses = await loadCsv('./data/04_통합_강좌데이터_테마분류_병합.csv');
         state.rawData.keywords = await loadCsv('./data/전국_이달의키워드.csv');
 
         initSelectors();
@@ -97,7 +97,7 @@ function initSelectors() {
         state.selection.sido = event.target.value;
         state.selection.sigungu = '';
         state.selection.library = '';
-        state.choices = { topics: [], case: null, keywords: [] };
+        state.choices = { topics: [], theme: null, case: null, keywords: [] };
         clearSelectionUI();
         sigunguSelect.innerHTML = '<option value="">시/군/구 선택</option>';
         libSelect.innerHTML = '<option value="">도서관 선택</option>';
@@ -117,7 +117,7 @@ function initSelectors() {
     sigunguSelect.addEventListener('change', (event) => {
         state.selection.sigungu = event.target.value;
         state.selection.library = '';
-        state.choices = { topics: [], case: null, keywords: [] };
+        state.choices = { topics: [], theme: null, case: null, keywords: [] };
         clearSelectionUI();
         libSelect.innerHTML = '<option value="">도서관 선택</option>';
         if (state.selection.sigungu) {
@@ -136,7 +136,6 @@ function initSelectors() {
         state.selection.library = event.target.value;
         if (state.selection.library) {
             processDataForSelectedRegion();
-            showStep(2);
         }
         updateSelectionSummary();
         refreshButtons();
@@ -146,7 +145,8 @@ function initSelectors() {
 function clearSelectionUI() {
     document.getElementById('region-topics').innerHTML = '<div class="empty-state">선택된 지역의 주제 데이터가 표시됩니다.</div>';
     document.getElementById('library-topics').innerHTML = '<div class="empty-state">선택된 도서관의 주제 데이터가 표시됩니다.</div>';
-    document.getElementById('similar-cases').innerHTML = '<div class="empty-state">유사 사례가 여기에 표시됩니다.</div>';
+    document.getElementById('theme-selector').innerHTML = '<div class="empty-state">테마 목록이 여기에 표시됩니다.</div>';
+    document.getElementById('similar-cases').innerHTML = '<div class="empty-state">테마를 먼저 선택해 주세요.</div>';
     document.getElementById('trending-keywords').innerHTML = '<div class="empty-state">키워드를 선택해 주세요.</div>';
     document.getElementById('plan-preview').innerHTML = '<div class="empty-state">기획안 생성 버튼을 누르면 제안이 여기에 표시됩니다.</div>';
     document.getElementById('start-planning-btn').disabled = true;
@@ -156,7 +156,7 @@ function clearSelectionUI() {
 
 function processDataForSelectedRegion() {
     const { sido, sigungu, library } = state.selection;
-    state.choices = { topics: [], case: null, keywords: [] };
+    state.choices = { topics: [], theme: null, case: null, keywords: [] };
     document.getElementById('go-step3-btn').disabled = true;
     document.getElementById('start-planning-btn').disabled = true;
 
@@ -171,9 +171,61 @@ function processDataForSelectedRegion() {
         document.getElementById('library-topics').insertAdjacentHTML('beforeend', '<div class="empty-state">도서관별 데이터가 없어 지역 강점으로 대체해 안내합니다.</div>');
     }
 
+    renderThemeSelector(sido, sigungu);
     renderSimilarCases(sido, sigungu);
     renderKeywords();
     updateSelectionSummary();
+}
+
+function findSimilarRegions(sido, sigungu) {
+    const shortSido = normalizeSido(sido);
+    const match = state.rawData.similar.find((row) => normalizeSido(row['지역']) === shortSido && row['시군구'] === sigungu);
+    if (!match) return [];
+    const regions = [];
+    for (let i = 1; i <= 5; i += 1) {
+        const simSigungu = match[`similar_${i}_시군구`];
+        if (simSigungu) regions.push(simSigungu);
+    }
+    return regions;
+}
+
+function getAvailableThemes(sido, sigungu) {
+    const simRegions = findSimilarRegions(sido, sigungu);
+    const themeSet = new Set();
+    state.rawData.courses.forEach((course) => {
+        if (simRegions.includes(course['지역명']) && course['테마분류']) {
+            themeSet.add(course['테마분류']);
+        }
+    });
+    return Array.from(themeSet);
+}
+
+function renderThemeSelector(sido, sigungu) {
+    const container = document.getElementById('theme-selector');
+    container.innerHTML = '';
+    const themes = getAvailableThemes(sido, sigungu);
+
+    if (themes.length === 0) {
+        container.innerHTML = '<div class="empty-state">유사 지역의 테마 데이터를 찾지 못했습니다.</div>';
+        return;
+    }
+
+    themes.forEach((theme) => {
+        const tag = document.createElement('button');
+        tag.type = 'button';
+        tag.className = 'theme-tag';
+        if (state.choices.theme === theme) tag.classList.add('selected');
+        tag.textContent = theme;
+        tag.addEventListener('click', () => {
+            state.choices.theme = theme;
+            state.choices.case = null;
+            document.querySelectorAll('.theme-tag').forEach((el) => el.classList.remove('selected'));
+            tag.classList.add('selected');
+            renderSimilarCases(state.selection.sido, state.selection.sigungu);
+            refreshButtons();
+        });
+        container.appendChild(tag);
+    });
 }
 
 function renderTopics(data, containerId) {
@@ -229,41 +281,53 @@ function renderSimilarCases(sido, sigungu) {
     const container = document.getElementById('similar-cases');
     container.innerHTML = '';
 
-    const shortSido = normalizeSido(sido);
-    const match = state.rawData.similar.find((row) => normalizeSido(row['지역']) === shortSido && row['시군구'] === sigungu);
-    const cases = [];
-
-    if (match) {
-        for (let i = 1; i <= 5; i += 1) {
-            const simSigungu = match[`similar_${i}_시군구`];
-            if (!simSigungu) continue;
-            const courses = state.rawData.courses.filter((course) => course['지역명'] === simSigungu);
-            if (courses.length > 0) {
-                courses.sort((a, b) => parseNumber(b['경쟁률']) - parseNumber(a['경쟁률']));
-                const best = courses[0];
-                cases.push({
-                    region: simSigungu,
-                    course: best['강좌명'] || '추천 강좌',
-                    target: best['대상'] || '전체',
-                    competition: best['경쟁률'] || '0',
-                    library: best['표준도서관명'] || best['도서관명'] || ''
-                });
-            }
-        }
-    }
-
-    if (cases.length === 0) {
-        container.innerHTML = '<div class="empty-state">해당 지역의 유사 사례를 찾지 못했습니다. 지역명을 다시 확인해 주세요.</div>';
+    const theme = state.choices.theme;
+    if (!theme) {
+        container.innerHTML = '<div class="empty-state">위에서 테마를 선택하면 유사 사례가 표시됩니다.</div>';
         return;
     }
 
-    cases.forEach((item) => {
+    const simRegions = findSimilarRegions(sido, sigungu);
+    const cases = [];
+
+    simRegions.forEach((simSigungu) => {
+        const courses = state.rawData.courses.filter((course) => course['지역명'] === simSigungu && course['테마분류'] === theme);
+        if (courses.length > 0) {
+            courses.sort((a, b) => parseNumber(b['경쟁률']) - parseNumber(a['경쟁률']));
+            const best = courses[0];
+            cases.push({
+                region: simSigungu,
+                course: best['강좌명'] || '추천 강좌',
+                target: best['대상'] || '전체',
+                competition: best['경쟁률'] || '0',
+                library: best['표준도서관명'] || best['도서관명'] || ''
+            });
+        }
+    });
+
+    cases.sort((a, b) => parseNumber(b.competition) - parseNumber(a.competition));
+
+    if (cases.length === 0) {
+        container.innerHTML = `<div class="empty-state">'${theme}' 테마의 유사 사례를 찾지 못했습니다. 다른 테마를 선택해 주세요.</div>`;
+        return;
+    }
+
+    const heading = document.createElement('div');
+    heading.className = 'case-list-heading';
+    heading.innerHTML = `<span class="theme-chip">${theme}</span> 테마 유사 성공사례 <strong>${cases.length}건</strong>`;
+    container.appendChild(heading);
+
+    cases.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'case-card';
         if (state.choices.case && state.choices.case.course === item.course) card.classList.add('selected');
         card.innerHTML = `
-            <strong>${item.course}</strong>
-            <div class="meta">${item.region} · 대상 ${item.target}<br>경쟁률 ${item.competition}${item.library ? ` · ${item.library}` : ''}</div>
+            <div class="case-card-top">
+                <span class="case-rank">${index + 1}위</span>
+                <span class="case-competition">경쟁률 ${item.competition}</span>
+            </div>
+            <strong class="case-title">${item.course}</strong>
+            <div class="meta">📍 ${item.region} · 대상 ${item.target}${item.library ? `<br>🏛️ ${item.library}` : ''}</div>
         `;
         card.addEventListener('click', () => {
             state.choices.case = item;
