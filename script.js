@@ -437,12 +437,11 @@ async function renderPlanProposal() {
     const topicText = state.choices.topics.join(', ');
     const keywordText = state.choices.keywords.join(', ');
     const caseText = state.choices.case?.course || '유사 사례';
-    const apiKey = document.getElementById('api-key-input')?.value.trim() || '';
 
     const prompt = `${state.selection.library} 도서관에서 ${topicText} 주제와 ${keywordText} 키워드를 반영한 문화프로그램 기획안 1개를 작성해줘. ${caseText}를 참고하되, 도서관 프로그램으로 적합하게 구성해줘. 결과는 JSON 형식으로 title, summary, target, concept, flow만 포함해줘.`;
 
     try {
-        const data = await callOpenAI('/api/generate-plan', { apiKey, prompt });
+        const data = await callOpenAI('/api/generate-plan', { prompt });
         state.plan = {
             title: data.title || `${state.selection.library} 맞춤형 프로그램`,
             summary: data.summary || '',
@@ -497,10 +496,9 @@ async function sendChatMessage() {
     if (!text) return;
     appendMessage('user', text);
     input.value = '';
-    const apiKey = document.getElementById('api-key-input')?.value.trim() || '';
     appendMessage('ai', '수정 요청을 반영해 GPT가 다시 정리하고 있습니다...');
     try {
-        const data = await callOpenAI('/api/modify-plan', { apiKey, plan: state.plan, message: text });
+        const data = await callOpenAI('/api/modify-plan', { plan: state.plan, message: text });
         appendMessage('ai', data.reply || '요청을 반영했습니다.');
     } catch (error) {
         appendMessage('ai', error.message);
