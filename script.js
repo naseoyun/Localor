@@ -174,6 +174,7 @@ function processDataForSelectedRegion() {
     const regionData = state.rawData.regionScores.filter((row) => row['시도'] === sido && row['시군구'] === sigungu);
     const libraryData = findLibraryTopicRows(library);
 
+    resetTopicColors();
     renderTopics(regionData, 'region-topics');
     if (libraryData.length > 0) {
         renderTopics(libraryData, 'library-topics');
@@ -239,6 +240,27 @@ function renderThemeSelector(sido, sigungu) {
     });
 }
 
+function normalizeTopicName(rawName) {
+    if (rawName && (rawName.startsWith('기타') || rawName === '미분류')) return '기타';
+    return rawName;
+}
+
+let topicColorAssignments = new Map();
+let nextTopicColorSlot = 0;
+
+function resetTopicColors() {
+    topicColorAssignments = new Map();
+    nextTopicColorSlot = 0;
+}
+
+function topicColorIndex(name) {
+    if (!topicColorAssignments.has(name)) {
+        topicColorAssignments.set(name, (nextTopicColorSlot % 10) + 1);
+        nextTopicColorSlot += 1;
+    }
+    return topicColorAssignments.get(name);
+}
+
 function renderTopics(data, containerId) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
@@ -247,16 +269,23 @@ function renderTopics(data, containerId) {
         return;
     }
 
-    const sorted = [...data].sort((a, b) => parseNumber(b.Specialty_Score || b['Specialty_Score'] || b['LQ']) - parseNumber(a.Specialty_Score || a['Specialty_Score'] || a['LQ']));
-    const maxScore = sorted.length > 0 ? parseNumber(sorted[0].Specialty_Score || sorted[0]['Specialty_Score'] || sorted[0]['LQ']) : 1;
-
-    sorted.slice(0, 8).forEach((item) => {
-        const name = item['세부주제'] || item['주제'] || item['topic'];
+    const grouped = new Map();
+    data.forEach((item) => {
+        const name = normalizeTopicName(item['세부주제'] || item['주제'] || item['topic']);
         const score = parseNumber(item.Specialty_Score || item['Specialty_Score'] || item['LQ']);
+        grouped.set(name, (grouped.get(name) || 0) + score);
+    });
+
+    const sorted = Array.from(grouped.entries())
+        .map(([name, score]) => ({ name, score }))
+        .sort((a, b) => b.score - a.score);
+    const maxScore = sorted.length > 0 ? sorted[0].score : 1;
+
+    sorted.slice(0, 8).forEach(({ name, score }) => {
         const percent = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
         const row = document.createElement('div');
-        row.className = 'topic-bar';
+        row.className = `topic-bar topic-color-${topicColorIndex(name)}`;
         if (state.choices.topics.includes(name)) row.classList.add('selected');
         row.innerHTML = `
             <div class="fill" style="width:${Math.max(percent, 8)}%"></div>
