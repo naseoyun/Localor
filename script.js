@@ -1,4 +1,4 @@
-﻿cconst SIDO_SHORT_MAP = {
+﻿const SIDO_SHORT_MAP = {
     '서울특별시': '서울',
     '부산광역시': '부산',
     '대구광역시': '대구',
