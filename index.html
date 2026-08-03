@@ -12,7 +12,7 @@
         <header class="hero">
             <p class="eyebrow">우리동네 독서 대시보드</p>
             <h1>Localor</h1>
-            <p class="hero-copy">우리 동네 도서관 데이터로, 우리 동네에 꼭 맞는 문화 프로그램을 기획해보세요</p>
+            <p class="hero-copy">우리 동네 도서관 데이터로, 우리 동네에 꼭 맞는 문화프로그램을 기획해보세요.</p>
         </header>
 
         <div class="stepper" role="tablist" aria-label="기획 단계">
@@ -41,7 +41,7 @@
                 </label>
             </div>
             <div class="panel-footer">
-                <div id="selection-summary" class="selection-summary">선택된 지역 정보가 여기에 표시됩니다.</div>
+                <div id="selection-summary" class="selection-summary is-empty"></div>
                 <button id="go-step2-btn" class="primary-btn" disabled>다음 단계로</button>
             </div>
         </section>
@@ -49,25 +49,25 @@
         <section class="panel" id="step-2">
             <div class="panel-header">
                 <h2>2. 주제 분석</h2>
-                <p>강점 주제, 유사 사례, 이달의 키워드를 함께 확인한 뒤 관심 주제를 선택해 주세요.</p>
+                <p>강점 주제, 이달의 키워드, 유사지역 사례를 모두 선택해주세요</p>
             </div>
             <div class="analysis-grid">
                 <div class="analysis-card">
                     <div class="analysis-card-head">
-                        <h3>강점 주제 분석</h3>
+                        <h3>주제 분석</h3>
                         <span>선택 가능</span>
                     </div>
                     <div class="topic-grid">
                         <div class="topic-card">
                             <div class="topic-card-head">
-                                <h3>지역 강점 주제</h3>
+                                <h3 id="region-topic-heading">📍 지역 강점 주제</h3>
                                 <span>점수 비율</span>
                             </div>
                             <div id="region-topics" class="bar-list">선택 대기 중...</div>
                         </div>
                         <div class="topic-card">
                             <div class="topic-card-head">
-                                <h3>도서관 강점 주제</h3>
+                                <h3 id="library-topic-heading">🏛️ 도서관 강점 주제</h3>
                                 <span>연계 추천</span>
                             </div>
                             <div id="library-topics" class="bar-list">선택 대기 중...</div>
@@ -76,20 +76,20 @@
                 </div>
                 <div class="analysis-card">
                     <div class="analysis-card-head">
-                        <h3>추가 참고 자료</h3>
+                        <h3>이달의 급상승 키워드</h3>
                         <span>기획안 반영</span>
                     </div>
-                    <div class="insight-grid">
-                        <div class="info-card">
-                            <h3>유사 지역 사례</h3>
-                            <div id="similar-cases" class="case-list">데이터를 불러오는 중입니다...</div>
-                        </div>
-                        <div class="info-card">
-                            <h3>이달의 급상승 키워드</h3>
-                            <div id="trending-keywords" class="keyword-list">데이터를 불러오는 중입니다...</div>
-                        </div>
-                    </div>
+                    <div id="trending-keywords" class="keyword-list">데이터를 불러오는 중입니다...</div>
                 </div>
+            </div>
+            <div class="analysis-card wide-card">
+                <div class="analysis-card-head">
+                    <h3>유사 지역 사례</h3>
+                    <span>기획안 반영</span>
+                </div>
+                <p class="card-hint">먼저 원하는 테마를 선택하면, 유사 지역의 강좌 중 해당 테마에서 경쟁률이 높은 사례를 보여줍니다.</p>
+                <div id="theme-selector" class="keyword-list">데이터를 불러오는 중입니다...</div>
+                <div id="similar-cases" class="case-list">데이터를 불러오는 중입니다...</div>
             </div>
             <div class="panel-footer">
                 <button id="back-step1-btn" class="ghost-btn">이전</button>
@@ -125,11 +125,6 @@
             <input type="text" id="chat-input" placeholder="원하는 방향을 입력해 주세요" disabled>
             <button id="chat-send-btn" disabled>전송</button>
         </div>
-    </div>
-
-    <div id="api-key-panel" class="api-key-panel" style="display:none;">
-        <label for="api-key-input">OpenAI API 키</label>
-        <input type="password" id="api-key-input" placeholder="sk-..." value="">
     </div>
 
     <script src="script.js"></script>
