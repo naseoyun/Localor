@@ -146,22 +146,28 @@ function initSelectors() {
 function clearSelectionUI() {
     document.getElementById('region-topics').innerHTML = '<div class="empty-state">선택된 지역의 주제 데이터가 표시됩니다.</div>';
     document.getElementById('library-topics').innerHTML = '<div class="empty-state">선택된 도서관의 주제 데이터가 표시됩니다.</div>';
-    document.getElementById('similar-cases').innerHTML = '<div class="empty-state">유사 사례가 여기에 표시됩니다.</div>';
+    document.getElementById('region-topic-heading').textContent = ' 지역 강점 주제';
+    document.getElementById('library-topic-heading').textContent = '도서관 강점 주제';
+    document.getElementById('theme-selector').innerHTML = '<div class="empty-state">테마 목록이 여기에 표시됩니다.</div>';
+    document.getElementById('similar-cases').innerHTML = '';
     document.getElementById('trending-keywords').innerHTML = '<div class="empty-state">키워드를 선택해 주세요.</div>';
     document.getElementById('plan-preview').innerHTML = '<div class="empty-state">기획안 생성 버튼을 누르면 제안이 여기에 표시됩니다.</div>';
     document.getElementById('start-planning-btn').disabled = true;
+    document.getElementById('start-planning-btn').textContent = '기획안 생성';
     state.planGenerated = false;
     state.plan = { title: '', summary: '', target: '', concept: '', flow: '' };
 }
-
 function processDataForSelectedRegion() {
     const { sido, sigungu, library } = state.selection;
-    state.choices = { topics: [], case: null, keywords: [] };
+    state.choices = { topics: [], theme: null, case: null, keywords: [] };
     document.getElementById('go-step3-btn').disabled = true;
     document.getElementById('start-planning-btn').disabled = true;
 
     const regionData = state.rawData.regionScores.filter((row) => row['시도'] === sido && row['시군구'] === sigungu);
     const libraryData = findLibraryTopicRows(library);
+
+    document.getElementById('region-topic-heading').textContent = `📍 ${sido} ${sigungu}의 강점 주제`;
+    document.getElementById('library-topic-heading').textContent = `🏛️ ${library}의 강점 주제`;
 
     renderTopics(regionData, 'region-topics');
     if (libraryData.length > 0) {
@@ -171,6 +177,7 @@ function processDataForSelectedRegion() {
         document.getElementById('library-topics').insertAdjacentHTML('beforeend', '<div class="empty-state">도서관별 데이터가 없어 지역 강점으로 대체해 안내합니다.</div>');
     }
 
+    renderThemeSelector(sido, sigungu);
     renderSimilarCases(sido, sigungu);
     renderKeywords();
     updateSelectionSummary();
@@ -229,41 +236,53 @@ function renderSimilarCases(sido, sigungu) {
     const container = document.getElementById('similar-cases');
     container.innerHTML = '';
 
-    const shortSido = normalizeSido(sido);
-    const match = state.rawData.similar.find((row) => normalizeSido(row['지역']) === shortSido && row['시군구'] === sigungu);
-    const cases = [];
-
-    if (match) {
-        for (let i = 1; i <= 5; i += 1) {
-            const simSigungu = match[`similar_${i}_시군구`];
-            if (!simSigungu) continue;
-            const courses = state.rawData.courses.filter((course) => course['지역명'] === simSigungu);
-            if (courses.length > 0) {
-                courses.sort((a, b) => parseNumber(b['경쟁률']) - parseNumber(a['경쟁률']));
-                const best = courses[0];
-                cases.push({
-                    region: simSigungu,
-                    course: best['강좌명'] || '추천 강좌',
-                    target: best['대상'] || '전체',
-                    competition: best['경쟁률'] || '0',
-                    library: best['표준도서관명'] || best['도서관명'] || ''
-                });
-            }
-        }
-    }
-
-    if (cases.length === 0) {
-        container.innerHTML = '<div class="empty-state">해당 지역의 유사 사례를 찾지 못했습니다. 지역명을 다시 확인해 주세요.</div>';
+    const theme = state.choices.theme;
+    if (!theme) {
+        container.innerHTML = '';
         return;
     }
 
-    cases.forEach((item) => {
+    const simRegions = findSimilarRegions(sido, sigungu);
+    const cases = [];
+
+    simRegions.forEach((simSigungu) => {
+        const courses = state.rawData.courses.filter((course) => course['지역명'] === simSigungu && course['테마분류'] === theme);
+        if (courses.length > 0) {
+            courses.sort((a, b) => parseNumber(b['경쟁률']) - parseNumber(a['경쟁률']));
+            const best = courses[0];
+            cases.push({
+                region: simSigungu,
+                course: best['강좌명'] || '추천 강좌',
+                target: best['대상'] || '전체',
+                competition: best['경쟁률'] || '0',
+                library: best['표준도서관명'] || best['도서관명'] || ''
+            });
+        }
+    });
+
+    cases.sort((a, b) => parseNumber(b.competition) - parseNumber(a.competition));
+
+    if (cases.length === 0) {
+        container.innerHTML = `<div class="empty-state">'${theme}' 테마의 유사 사례를 찾지 못했습니다. 다른 테마를 선택해 주세요.</div>`;
+        return;
+    }
+
+    const heading = document.createElement('div');
+    heading.className = 'case-list-heading';
+    heading.innerHTML = `<span class="theme-chip">${theme}</span> 테마 유사 성공사례 <strong>${cases.length}건</strong>`;
+    container.appendChild(heading);
+
+    cases.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'case-card';
         if (state.choices.case && state.choices.case.course === item.course) card.classList.add('selected');
         card.innerHTML = `
-            <strong>${item.course}</strong>
-            <div class="meta">${item.region} · 대상 ${item.target}<br>경쟁률 ${item.competition}${item.library ? ` · ${item.library}` : ''}</div>
+            <div class="case-card-top">
+                <span class="case-rank">${index + 1}위</span>
+                <span class="case-competition">경쟁률 ${item.competition}</span>
+            </div>
+            <strong class="case-title">${item.course}</strong>
+            <div class="meta">📍 ${item.region} · 대상 ${item.target}${item.library ? `<br>🏛️ ${item.library}` : ''}</div>
         `;
         card.addEventListener('click', () => {
             state.choices.case = item;
@@ -318,11 +337,13 @@ function refreshButtons() {
 function updateSelectionSummary() {
     const summary = document.getElementById('selection-summary');
     if (!state.selection.sido && !state.selection.sigungu && !state.selection.library) {
-        summary.textContent = '선택된 지역 정보가 여기에 표시됩니다.';
+        summary.textContent = '';
+        summary.classList.add('is-empty');
         return;
     }
     const label = [state.selection.sido, state.selection.sigungu, state.selection.library].filter(Boolean).join(' · ');
     summary.textContent = `현재 선택: ${label}`;
+    summary.classList.remove('is-empty');
 }
 
 function showStep(step) {
@@ -373,12 +394,11 @@ async function renderPlanProposal() {
     const topicText = state.choices.topics.join(', ');
     const keywordText = state.choices.keywords.join(', ');
     const caseText = state.choices.case?.course || '유사 사례';
-    const apiKey = document.getElementById('api-key-input')?.value.trim() || '';
 
     const prompt = `${state.selection.library} 도서관에서 ${topicText} 주제와 ${keywordText} 키워드를 반영한 문화프로그램 기획안 1개를 작성해줘. ${caseText}를 참고하되, 도서관 프로그램으로 적합하게 구성해줘. 결과는 JSON 형식으로 title, summary, target, concept, flow만 포함해줘.`;
 
     try {
-        const data = await callOpenAI('/api/generate-plan', { apiKey, prompt });
+        const data = await callOpenAI('/api/generate-plan', { prompt });
         state.plan = {
             title: data.title || `${state.selection.library} 맞춤형 프로그램`,
             summary: data.summary || '',
@@ -408,6 +428,7 @@ async function renderPlanProposal() {
                 <p><strong>진행 흐름</strong>: ${state.plan.flow}</p>
             </div>
         `;
+        document.getElementById('start-planning-btn').textContent = '다시 생성하기';
     } catch (error) {
         preview.innerHTML = `<div class="empty-state">${error.message}</div>`;
     }
