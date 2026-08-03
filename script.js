@@ -397,6 +397,7 @@ function showStep(step) {
     document.querySelectorAll('.panel').forEach((panel) => {
         panel.classList.toggle('active', panel.id === `step-${step}`);
     });
+    renderSuggestions();
 }
 
 function appendMessage(role, text) {
@@ -406,6 +407,52 @@ function appendMessage(role, text) {
     div.textContent = text;
     body.appendChild(div);
     body.scrollTop = body.scrollHeight;
+}
+
+const SUGGESTIONS_BY_STEP = {
+    1: [],
+    2: [
+        '이 지역·도서관에 어울리는 다른 주제나 키워드도 추천해주실 수 있나요?'
+    ],
+    3: [
+        '제안된 강좌 사례 외에 다른 추천도 볼 수 있을까요?',
+        '기획안을 수정하고 싶어요',
+        '이 주제를 초등학생 대상으로 바꾸면 어떻게 될까요?'
+    ]
+};
+
+function renderSuggestions() {
+    const wrap = document.getElementById('chat-suggestions');
+    wrap.innerHTML = '';
+    const questions = SUGGESTIONS_BY_STEP[state.step] || [];
+    if (questions.length === 0) {
+        wrap.classList.remove('visible');
+        return;
+    }
+    wrap.classList.add('visible');
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'suggestion-close';
+    closeBtn.setAttribute('aria-label', '예시 질문 닫기');
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', () => removeSuggestions());
+    wrap.appendChild(closeBtn);
+
+    questions.forEach((question) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'suggestion-chip';
+        chip.textContent = question;
+        chip.addEventListener('click', () => sendChatMessage(question));
+        wrap.appendChild(chip);
+    });
+}
+
+function removeSuggestions() {
+    const wrap = document.getElementById('chat-suggestions');
+    wrap.innerHTML = '';
+    wrap.classList.remove('visible');
 }
 
 async function callOpenAI(path, payload) {
@@ -477,23 +524,18 @@ async function renderPlanProposal() {
 }
 
 function openChat() {
-    if (!state.planGenerated) {
-        return;
-    }
-    const widget = document.getElementById('chat-widget');
-    widget.classList.add('open');
-    document.getElementById('chat-input').disabled = false;
-    document.getElementById('chat-send-btn').disabled = false;
+    document.getElementById('chat-widget').classList.add('open');
 }
 
 function closeChat() {
     document.getElementById('chat-widget').classList.remove('open');
 }
 
-async function sendChatMessage() {
+async function sendChatMessage(presetText) {
     const input = document.getElementById('chat-input');
-    const text = input.value.trim();
+    const text = (presetText ?? input.value).trim();
     if (!text) return;
+    removeSuggestions();
     appendMessage('user', text);
     input.value = '';
     appendMessage('ai', '수정 요청을 반영해 GPT가 다시 정리하고 있습니다...');
@@ -529,11 +571,10 @@ function attachEvents() {
         showStep(3);
         state.planGenerated = true;
         document.getElementById('chat-input').value = '';
-        document.getElementById('chat-messages').innerHTML = '<div class="msg ai-msg">맞춤 기획안 생성 중입니다. 잠시만 기다려 주세요.</div>';
+        removeSuggestions();
+        appendMessage('ai', '맞춤 기획안 생성 중입니다. 잠시만 기다려 주세요.');
         await renderPlanProposal();
-        if (state.plan.title) {
-            appendMessage('ai', '기획안이 생성됐습니다. 원하는 방향으로 수정 요청을 보내 주세요.');
-        }
+        renderSuggestions();
     });
     document.getElementById('chat-toggle').addEventListener('click', () => {
         const widget = document.getElementById('chat-widget');
@@ -544,7 +585,7 @@ function attachEvents() {
         }
     });
     document.getElementById('chat-close-btn').addEventListener('click', closeChat);
-    document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
+    document.getElementById('chat-send-btn').addEventListener('click', () => sendChatMessage());
     document.getElementById('chat-input').addEventListener('keydown', (event) => {
         if (event.key === 'Enter') sendChatMessage();
     });
@@ -552,3 +593,4 @@ function attachEvents() {
 
 attachEvents();
 init();
+renderSuggestions();
