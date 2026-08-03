@@ -83,11 +83,14 @@ async function init() {
         renderKeywords();
         refreshButtons();
         updateSelectionSummary();
+        positionChatToggle();
     } catch (error) {
         console.error(error);
         document.querySelector('#similar-cases').innerHTML = '<div class="empty-state">데이터를 불러오지 못했습니다. Live Server로 다시 열어 주세요.</div>';
     }
 }
+
+window.addEventListener('resize', positionChatToggle);
 
 function initSelectors() {
     const sidoSelect = document.getElementById('sido-select');
@@ -291,11 +294,14 @@ function renderTopics(data, containerId) {
         .sort((a, b) => b.score - a.score);
     const maxScore = sorted.length > 0 ? sorted[0].score : 1;
 
-    sorted.slice(0, 8).forEach(({ name, score }) => {
+    const VISIBLE_COUNT = 4;
+    const topics = sorted.slice(0, 8);
+    topics.forEach(({ name, score }, index) => {
         const percent = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
         const row = document.createElement('div');
         row.className = `topic-bar topic-color-${topicColorIndex(name)}`;
+        if (index >= VISIBLE_COUNT) row.classList.add('topic-bar-extra');
         if (state.choices.topics.includes(name)) row.classList.add('selected');
         row.innerHTML = `
             <div class="fill" style="width:${Math.max(percent, 8)}%"></div>
@@ -305,6 +311,18 @@ function renderTopics(data, containerId) {
         row.addEventListener('click', () => toggleTopic(name));
         container.appendChild(row);
     });
+
+    if (topics.length > VISIBLE_COUNT) {
+        const moreBtn = document.createElement('button');
+        moreBtn.type = 'button';
+        moreBtn.className = 'topic-more-btn';
+        moreBtn.textContent = '더보기';
+        moreBtn.addEventListener('click', () => {
+            const expanded = container.classList.toggle('expanded');
+            moreBtn.textContent = expanded ? '접기' : '더보기';
+        });
+        container.appendChild(moreBtn);
+    }
 }
 
 function toggleTopic(name) {
@@ -522,6 +540,22 @@ function showStep(step) {
         panel.classList.toggle('active', panel.id === `step-${step}`);
     });
     renderSuggestions();
+    positionChatToggle();
+}
+
+function positionChatToggle() {
+    const toggle = document.getElementById('chat-toggle');
+    const panel = document.querySelector('.panel.active');
+    if (!toggle || !panel) return;
+    const rect = panel.getBoundingClientRect();
+    const toggleRect = toggle.getBoundingClientRect();
+    const size = toggleRect.height || 80;
+    const desiredTop = rect.bottom - size - 18;
+    const maxTop = window.innerHeight - size - 16;
+    toggle.style.top = `${Math.min(desiredTop, maxTop)}px`;
+    toggle.style.bottom = 'auto';
+    const desiredRight = window.innerWidth - (rect.right + 16 + size);
+    toggle.style.right = `${Math.max(12, desiredRight)}px`;
 }
 
 function appendMessage(role, text) {

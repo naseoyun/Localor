@@ -77,6 +77,22 @@ button, select, input { font: inherit; }
     color: var(--teal);
     font-family: "Mochiy Pop One", sans-serif;
 }
+.hero-title-row {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.hero-icon {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    width: 290px;
+    height: auto;
+    transform: translateY(calc(-50% - 8px)) rotate(-8deg);
+    margin-right: 68px;
+    opacity: 0.95;
+    pointer-events: none;
+}
 .hero-copy {
     margin: 16px auto 0;
     max-width: 720px;
@@ -85,6 +101,7 @@ button, select, input { font: inherit; }
     font-size: 1.25rem;
 }
 .stepper {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -94,6 +111,10 @@ button, select, input { font: inherit; }
 .dashboard-container:has(#step-2.active) .stepper,
 .dashboard-container:has(#step-3.active) .stepper {
     margin: 28px 0;
+}
+.dashboard-container:has(#step-2.active) .hero-icon,
+.dashboard-container:has(#step-3.active) .hero-icon {
+    display: none;
 }
 .step-node {
     display: flex;
@@ -147,6 +168,7 @@ button, select, input { font: inherit; }
     flex-shrink: 0;
 }
 .panel {
+    position: relative;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 18px;
@@ -155,6 +177,20 @@ button, select, input { font: inherit; }
     display: none;
 }
 .panel.active { display: block; margin-top: auto; margin-bottom: auto; }
+.step1-illustration {
+    position: absolute;
+    bottom: -88px;
+    right: 20px;
+    width: 235px;
+    height: auto;
+    z-index: 5;
+    pointer-events: none;
+}
+.dashboard-container:has(#step-2.active) .step1-illustration,
+.dashboard-container:has(#step-3.active) .step1-illustration {
+    bottom: -56px;
+    width: 186px;
+}
 .panel-header h2 { margin: 0 0 6px; color: var(--teal); font-family: "Jua", sans-serif; font-weight: normal; }
 .panel-header p { margin: 0; color: var(--muted); }
 .selector-grid {
@@ -345,8 +381,28 @@ button, select, input { font: inherit; }
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
 }
 #similar-cases .case-list-heading { grid-column: 1 / -1; }
+.topic-bar.topic-bar-extra {
+    display: none;
+}
+.bar-list.expanded .topic-bar.topic-bar-extra {
+    display: flex;
+}
+.topic-more-btn {
+    align-self: center;
+    margin-top: 2px;
+    border: none;
+    background: none;
+    color: var(--teal);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 4px;
+}
 .topic-bar {
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -586,7 +642,7 @@ button, select, input { font: inherit; }
 }
 .chat-toggle {
     position: fixed;
-    right: 24px;
+    right: max(24px, calc((100vw - 1100px) / 2 + 24px));
     bottom: 24px;
     font-size: clamp(28px, 4vw, 50px);
     width: 1.6em;
@@ -605,7 +661,7 @@ button, select, input { font: inherit; }
 }
 .chat-widget {
     position: fixed;
-    right: 24px;
+    right: max(24px, calc((100vw - 1100px) / 2 + 24px));
     bottom: 86px;
     width: 400px;
     max-width: calc(100vw - 32px);
