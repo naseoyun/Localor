@@ -94,9 +94,12 @@ function initSelectors() {
     const sigunguSelect = document.getElementById('sigungu-select');
     const libSelect = document.getElementById('library-select');
 
-    Object.keys(state.rawData.libs).forEach((sido) => {
-        sidoSelect.add(new Option(sido, sido));
-    });
+    const EXCLUDED_SIDO = ['미상', '-'];
+    Object.keys(state.rawData.libs)
+        .filter((sido) => !EXCLUDED_SIDO.includes(sido))
+        .forEach((sido) => {
+            sidoSelect.add(new Option(sido, sido));
+        });
 
     sidoSelect.addEventListener('change', (event) => {
         state.selection.sido = event.target.value;
