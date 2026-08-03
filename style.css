@@ -372,11 +372,16 @@ button, select, input { font: inherit; }
     position: fixed;
     right: 24px;
     bottom: 24px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: none;
     border-radius: 999px;
-    background: var(--teal);
+    background: var(--coral);
     color: white;
-    padding: 12px 16px;
+    padding: 0;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     cursor: pointer;
     z-index: 1100;
@@ -385,15 +390,17 @@ button, select, input { font: inherit; }
     position: fixed;
     right: 24px;
     bottom: 86px;
-    width: 360px;
+    width: 400px;
     max-width: calc(100vw - 32px);
-    height: 470px;
+    height: 460px;
     display: flex;
     flex-direction: column;
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid var(--line);
-    background: white;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 16px 40px rgba(0,0,0,0.16);
     z-index: 1200;
     transform: translateY(12px);
@@ -407,7 +414,7 @@ button, select, input { font: inherit; }
     pointer-events: auto;
 }
 .chat-header {
-    background: var(--teal);
+    background: rgba(63, 108, 107, 0.85);
     color: white;
     padding: 12px 14px;
     display: flex;
@@ -428,7 +435,6 @@ button, select, input { font: inherit; }
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: #fcf7ef;
 }
 .msg {
     max-width: 88%;
@@ -437,14 +443,48 @@ button, select, input { font: inherit; }
     line-height: 1.45;
     white-space: pre-wrap;
 }
-.ai-msg { background: #f2e7d5; align-self: flex-start; }
-.user-msg { background: var(--teal); color: white; align-self: flex-end; }
+.ai-msg { background: rgba(242, 231, 213, 0.85); align-self: flex-start; }
+.user-msg { background: rgba(63, 108, 107, 0.85); color: white; align-self: flex-end; }
+.chat-suggestions {
+    display: none;
+    position: relative;
+    flex-direction: column;
+    gap: 6px;
+    padding: 26px 12px 10px;
+}
+.chat-suggestions.visible { display: flex; }
+.suggestion-close {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.suggestion-chip {
+    text-align: left;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.28);
+    color: var(--ink);
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.suggestion-chip:hover { background: rgba(255, 255, 255, 0.6); }
 .chat-input-area {
     display: flex;
     gap: 8px;
     padding: 10px;
     border-top: 1px solid var(--line);
-    background: white;
 }
 .chat-input-area input {
     flex: 1;
@@ -453,11 +493,17 @@ button, select, input { font: inherit; }
     padding: 9px 10px;
 }
 .chat-input-area button {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: none;
-    background: var(--teal);
+    background: var(--coral);
     color: white;
-    border-radius: 10px;
-    padding: 0 12px;
+    border-radius: 999px;
+    padding: 0;
     cursor: pointer;
 }
 .chat-input-area button:disabled { background: #c8bbb0; cursor: not-allowed; }

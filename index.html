@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>문화프로그램 기획 지원 대시보드</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
@@ -112,18 +113,28 @@
         </section>
     </div>
 
-    <button id="chat-toggle" class="chat-toggle" aria-label="AI 기획 어시스턴트 열기">AI</button>
+    <button id="chat-toggle" class="chat-toggle" aria-label="AI 기획 도우미 열기">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+    </button>
     <div id="chat-widget" class="chat-widget" aria-live="polite">
         <div class="chat-header">
-            <span>AI 기획 어시스턴트</span>
+            <span>✨ AI 기획 도우미</span>
             <button id="chat-close-btn" class="icon-btn" aria-label="닫기">×</button>
         </div>
         <div class="chat-body" id="chat-messages">
-            <div class="msg ai-msg">도서관과 주제를 선택하고 기획안 생성을 시작해 주세요.</div>
+            <div class="msg ai-msg">안녕하세요! 무엇을 도와드릴까요?</div>
         </div>
+        <div id="chat-suggestions" class="chat-suggestions"></div>
         <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="원하는 방향을 입력해 주세요" disabled>
-            <button id="chat-send-btn" disabled>전송</button>
+            <input type="text" id="chat-input" placeholder="원하는 방향을 입력해 주세요">
+            <button id="chat-send-btn" aria-label="전송">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+            </button>
         </div>
     </div>
 
