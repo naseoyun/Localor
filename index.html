@@ -6,6 +6,11 @@
     <title>문화프로그램 기획 지원 대시보드</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
@@ -17,57 +22,68 @@
         </header>
 
         <div class="stepper" role="tablist" aria-label="기획 단계">
-            <button class="step-item active" data-step="1"><span class="step-number">1</span><span>도서관 선택</span></button>
-            <button class="step-item" data-step="2"><span class="step-number">2</span><span>강점 주제 분석</span></button>
-            <button class="step-item" data-step="3"><span class="step-number">3</span><span>기획안 구성</span></button>
+            <div class="step-node current" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">도서관 선택</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">강점 주제 분석</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">기획안 구성</div>
+            </div>
         </div>
 
         <section class="panel active" id="step-1">
             <div class="panel-header">
-                <h2>1. 대상 도서관 선택</h2>
+                <h2><span class="material-symbols-outlined">account_balance</span> 대상 도서관 선택</h2>
                 <p>지역과 도서관을 선택하면, 독서 성향 분석이 시작됩니다.</p>
             </div>
             <div class="selector-grid">
-                <label class="select-field">
+                <div class="select-field">
                     <span>시/도</span>
                     <select id="sido-select"><option value="">시/도 선택</option></select>
-                </label>
-                <label class="select-field">
+                </div>
+                <div class="select-field">
                     <span>시/군/구</span>
                     <select id="sigungu-select" disabled><option value="">시/군/구 선택</option></select>
-                </label>
-                <label class="select-field">
+                </div>
+                <div class="select-field">
                     <span>도서관</span>
                     <select id="library-select" disabled><option value="">도서관 선택</option></select>
-                </label>
+                </div>
             </div>
             <div class="panel-footer">
-                <div id="selection-summary" class="selection-summary">선택된 지역 정보가 여기에 표시됩니다.</div>
+                <div id="selection-summary" class="selection-summary is-empty"></div>
                 <button id="go-step2-btn" class="primary-btn" disabled>다음 단계로</button>
             </div>
         </section>
 
         <section class="panel" id="step-2">
             <div class="panel-header">
-                <h2>2. 주제 분석</h2>
-                <p>강점 주제, 이달의 키워드, 유사지역 사례를 모두 선택해주세요</p>
+                <h2><span class="material-symbols-outlined">topic</span> 주제 분석</h2>
+                <p>강점 주제, 이달의 키워드, 유사지역 사례를 모두 선택해주세요.</p>
             </div>
             <div class="analysis-grid">
                 <div class="analysis-card">
                     <div class="analysis-card-head">
                         <h3>주제 분석 (LQ 지수)</h3>
-                        <span>선택 가능</span>
+                        <span>최대 3개 선택 가능</span>
                     </div>
                     <div class="topic-grid">
                         <div class="topic-card">
                             <div class="topic-card-head">
-                                <h3>📍 지역 강점 주제</h3>
+                                <h3><span class="material-symbols-outlined">local_library</span> 지역 강점 주제</h3>
                             </div>
                             <div id="region-topics" class="bar-list">선택 대기 중...</div>
                         </div>
                         <div class="topic-card">
                             <div class="topic-card-head">
-                                <h3>🏛️ 도서관 강점 주제</h3>
+                                <h3><span class="material-symbols-outlined">book_2</span> 도서관 강점 주제</h3>
                             </div>
                             <div id="library-topics" class="bar-list">선택 대기 중...</div>
                         </div>
@@ -75,15 +91,15 @@
                 </div>
                 <div class="analysis-card">
                     <div class="analysis-card-head">
-                        <h3>이달의 급상승 키워드</h3>
-                        <span>기획안 반영</span>
+                        <h3><span class="material-symbols-outlined">trending_up</span> 이달의 급상승 키워드</h3>
+                        <span>최대 3개 선택 가능</span>
                     </div>
                     <div id="trending-keywords" class="keyword-list">데이터를 불러오는 중입니다...</div>
                 </div>
             </div>
             <div class="analysis-card wide-card">
                 <div class="analysis-card-head">
-                    <h3>유사 지역 사례</h3>
+                    <h3><span class="material-symbols-outlined">bookmark_star</span> 유사 지역 사례</h3>
                     <span>기획안 반영</span>
                 </div>
                 <p class="card-hint">먼저 원하는 테마를 선택하면, 유사 지역의 강좌 중 해당 테마에서 경쟁률이 높은 사례를 보여줍니다.</p>
@@ -98,12 +114,13 @@
 
         <section class="panel" id="step-3">
             <div class="panel-header">
-                <h2>3. 맞춤 기획안 생성</h2>
+                <h2><span class="material-symbols-outlined">checkbook</span> 맞춤 기획안 생성</h2>
                 <p>선택한 주제와 참고 자료를 바탕으로 GPT가 맞춤형 기획안을 제안합니다.</p>
             </div>
             <div id="plan-preview" class="plan-preview">
                 <div class="empty-state">기획안 생성 버튼을 누르면 제안이 여기에 표시됩니다.</div>
             </div>
+            <p class="plan-note">* 기획안 수정을 원하시는 분은 우측 하단의 채팅창을 사용해주세요.</p>
             <div class="panel-footer">
                 <button id="back-step2-btn" class="ghost-btn">이전</button>
                 <button id="start-planning-btn" class="primary-btn" disabled>기획안 생성</button>

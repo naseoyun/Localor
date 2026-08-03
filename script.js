@@ -95,8 +95,18 @@ function initSelectors() {
     const libSelect = document.getElementById('library-select');
 
     const EXCLUDED_SIDO = ['미상', '-'];
+    const SIDO_ORDER = [
+        '서울특별시', '경기도',
+        '부산광역시', '대구광역시', '인천광역시', '광주광역시', '대전광역시', '울산광역시', '세종특별자치시',
+        '강원특별자치도', '충청북도', '충청남도', '전북특별자치도', '전라남도', '경상북도', '경상남도', '제주특별자치도'
+    ];
     Object.keys(state.rawData.libs)
         .filter((sido) => !EXCLUDED_SIDO.includes(sido))
+        .sort((a, b) => {
+            const ia = SIDO_ORDER.indexOf(a);
+            const ib = SIDO_ORDER.indexOf(b);
+            return (ia === -1 ? SIDO_ORDER.length : ia) - (ib === -1 ? SIDO_ORDER.length : ib);
+        })
         .forEach((sido) => {
             sidoSelect.add(new Option(sido, sido));
         });
@@ -323,7 +333,6 @@ function renderSimilarCases(sido, sigungu) {
 
     const theme = state.choices.theme;
     if (!theme) {
-        container.innerHTML = '<div class="empty-state">유사 사례가 나타납니다</div>';
         return;
     }
 
@@ -364,10 +373,13 @@ function renderSimilarCases(sido, sigungu) {
         card.innerHTML = `
             <div class="case-card-top">
                 <span class="case-rank">${index + 1}위</span>
-                <span class="case-competition">경쟁률 ${item.competition}</span>
+                <span class="case-competition">경쟁률 ${parseNumber(item.competition) === 0 ? 'X' : item.competition}</span>
             </div>
             <strong class="case-title">${item.course}</strong>
-            <div class="meta">📍 ${item.region} · 대상 ${item.target}${item.library ? `<br>🏛️ ${item.library}` : ''}</div>
+            <div class="meta">
+                <div class="meta-row"><span class="material-symbols-outlined meta-icon">location_on</span><span>${item.region} · 대상 ${item.target}</span></div>
+                ${item.library ? `<div class="meta-row"><span class="material-symbols-outlined meta-icon">account_balance</span><span>${item.library}</span></div>` : ''}
+            </div>
         `;
         card.addEventListener('click', () => {
             state.choices.case = item;
@@ -488,17 +500,23 @@ function refreshButtons() {
 function updateSelectionSummary() {
     const summary = document.getElementById('selection-summary');
     if (!state.selection.sido && !state.selection.sigungu && !state.selection.library) {
-        summary.textContent = '선택된 지역 정보가 여기에 표시됩니다.';
+        summary.textContent = '';
+        summary.classList.add('is-empty');
         return;
     }
     const label = [state.selection.sido, state.selection.sigungu, state.selection.library].filter(Boolean).join(' · ');
     summary.textContent = `현재 선택: ${label}`;
+    summary.classList.remove('is-empty');
 }
 
 function showStep(step) {
     state.step = step;
-    document.querySelectorAll('.step-item').forEach((item) => {
-        item.classList.toggle('active', Number(item.dataset.step) === step);
+    document.querySelectorAll('.step-node').forEach((item) => {
+        const itemStep = Number(item.dataset.step);
+        const isCompleted = itemStep < step;
+        item.classList.toggle('current', itemStep === step);
+        item.classList.toggle('completed', isCompleted);
+        item.querySelector('.step-circle').textContent = isCompleted ? '✓' : itemStep;
     });
     document.querySelectorAll('.panel').forEach((panel) => {
         panel.classList.toggle('active', panel.id === `step-${step}`);
@@ -583,6 +601,15 @@ function buildPlanText() {
     return `${state.selection.library}를 기준으로 ${topicText} 주제를 중심에 두고, ${keywordText} 키워드를 결합해 ${title}을 제안합니다. ${caseText}를 참고해 60분 체험형 + 30분 토론형 흐름으로 구성하면 참여율이 높습니다.`;
 }
 
+function formatFlowText(flow) {
+    return flow
+        .split(/\s*(?=\d+\.\s)/)
+        .map((step) => step.trim())
+        .filter(Boolean)
+        .map((step) => `<span class="flow-step">${step}</span>`)
+        .join('');
+}
+
 async function renderPlanProposal() {
     const preview = document.getElementById('plan-preview');
     preview.innerHTML = '<div class="empty-state">GPT가 기획안을 생성하고 있습니다...</div>';
@@ -605,7 +632,6 @@ async function renderPlanProposal() {
 
         preview.innerHTML = `
             <div class="plan-card">
-                <span class="plan-chip">맞춤 기획안</span>
                 <h3>${state.plan.title}</h3>
                 <p>${state.plan.summary}</p>
             </div>
@@ -621,7 +647,8 @@ async function renderPlanProposal() {
             <div class="plan-card">
                 <h3>운영안</h3>
                 <p>${state.plan.concept}</p>
-                <p><strong>진행 흐름</strong>: ${state.plan.flow}</p>
+                <p><strong>진행 흐름</strong>:</p>
+                <div class="flow-list">${formatFlowText(state.plan.flow)}</div>
             </div>
         `;
     } catch (error) {
@@ -697,6 +724,82 @@ function attachEvents() {
     });
 }
 
+function enhanceSelect(select) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-select';
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'custom-select-trigger';
+    wrapper.appendChild(trigger);
+
+    const list = document.createElement('div');
+    list.className = 'custom-select-list';
+    wrapper.appendChild(list);
+
+    function closeList() {
+        list.classList.remove('open');
+        document.removeEventListener('click', onOutsideClick);
+    }
+
+    function onOutsideClick(event) {
+        if (!wrapper.contains(event.target)) closeList();
+    }
+
+    function openList() {
+        if (select.disabled) return;
+        document.querySelectorAll('.custom-select-list.open').forEach((el) => {
+            if (el !== list) el.classList.remove('open');
+        });
+        list.classList.add('open');
+        document.addEventListener('click', onOutsideClick);
+    }
+
+    function syncFromSelect() {
+        const selectedOption = select.options[select.selectedIndex];
+        trigger.textContent = selectedOption ? selectedOption.text : '';
+        wrapper.classList.toggle('disabled', select.disabled);
+
+        list.innerHTML = '';
+        Array.from(select.options).forEach((opt) => {
+            const item = document.createElement('div');
+            item.className = 'custom-select-option';
+            item.textContent = opt.text;
+            if (opt.value === select.value) item.classList.add('active');
+            item.addEventListener('click', () => {
+                select.value = opt.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                closeList();
+            });
+            list.appendChild(item);
+        });
+    }
+
+    trigger.addEventListener('click', () => {
+        if (list.classList.contains('open')) {
+            closeList();
+        } else {
+            syncFromSelect();
+            openList();
+        }
+    });
+    select.addEventListener('change', syncFromSelect);
+
+    const observer = new MutationObserver(syncFromSelect);
+    observer.observe(select, { childList: true, attributes: true, attributeFilter: ['disabled'] });
+
+    syncFromSelect();
+}
+
+function setupCustomDropdowns() {
+    ['sido-select', 'sigungu-select', 'library-select'].forEach((id) => {
+        enhanceSelect(document.getElementById(id));
+    });
+}
+
+setupCustomDropdowns();
 attachEvents();
 init();
 renderSuggestions();
