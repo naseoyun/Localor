@@ -1,4 +1,4 @@
-﻿const SIDO_SHORT_MAP = {
+﻿cconst SIDO_SHORT_MAP = {
     '서울특별시': '서울',
     '부산광역시': '부산',
     '대구광역시': '대구',
@@ -21,7 +21,7 @@
 const state = {
     rawData: { libs: {}, regionScores: [], libScores: [], similar: [], courses: [], keywords: [] },
     selection: { sido: '', sigungu: '', library: '' },
-    choices: { topics: [], case: null, keywords: [] },
+    choices: { topics: [], theme: null, case: null, keywords: [] },
     plan: { title: '', summary: '', target: '', concept: '', flow: '' },
     planGenerated: false,
     step: 1
@@ -71,7 +71,7 @@ async function init() {
         state.rawData.regionScores = await loadCsv('./data/시군구별_지역특색_추출결과.csv');
         state.rawData.libScores = await loadCsv('./data/도서관별_강점주제_추출결과.csv');
         state.rawData.similar = await loadCsv('./data/top5_similar_최종_상세근거포함.csv');
-        state.rawData.courses = await loadCsv('./data/03_통합_분석용_official만.csv');
+        state.rawData.courses = await loadCsv('./data/04_통합_강좌데이터_테마분류_병합.csv');
         state.rawData.keywords = await loadCsv('./data/전국_이달의키워드.csv');
 
         initSelectors();
@@ -97,7 +97,7 @@ function initSelectors() {
         state.selection.sido = event.target.value;
         state.selection.sigungu = '';
         state.selection.library = '';
-        state.choices = { topics: [], case: null, keywords: [] };
+        state.choices = { topics: [], theme: null, case: null, keywords: [] };
         clearSelectionUI();
         sigunguSelect.innerHTML = '<option value="">시/군/구 선택</option>';
         libSelect.innerHTML = '<option value="">도서관 선택</option>';
@@ -117,7 +117,7 @@ function initSelectors() {
     sigunguSelect.addEventListener('change', (event) => {
         state.selection.sigungu = event.target.value;
         state.selection.library = '';
-        state.choices = { topics: [], case: null, keywords: [] };
+        state.choices = { topics: [], theme: null, case: null, keywords: [] };
         clearSelectionUI();
         libSelect.innerHTML = '<option value="">도서관 선택</option>';
         if (state.selection.sigungu) {
@@ -136,7 +136,6 @@ function initSelectors() {
         state.selection.library = event.target.value;
         if (state.selection.library) {
             processDataForSelectedRegion();
-            showStep(2);
         }
         updateSelectionSummary();
         refreshButtons();
@@ -157,6 +156,7 @@ function clearSelectionUI() {
     state.planGenerated = false;
     state.plan = { title: '', summary: '', target: '', concept: '', flow: '' };
 }
+
 function processDataForSelectedRegion() {
     const { sido, sigungu, library } = state.selection;
     state.choices = { topics: [], theme: null, case: null, keywords: [] };
@@ -183,6 +183,57 @@ function processDataForSelectedRegion() {
     updateSelectionSummary();
 }
 
+function findSimilarRegions(sido, sigungu) {
+    const shortSido = normalizeSido(sido);
+    const match = state.rawData.similar.find((row) => normalizeSido(row['지역']) === shortSido && row['시군구'] === sigungu);
+    if (!match) return [];
+    const regions = [];
+    for (let i = 1; i <= 5; i += 1) {
+        const simSigungu = match[`similar_${i}_시군구`];
+        if (simSigungu) regions.push(simSigungu);
+    }
+    return regions;
+}
+
+function getAvailableThemes(sido, sigungu) {
+    const simRegions = findSimilarRegions(sido, sigungu);
+    const themeSet = new Set();
+    state.rawData.courses.forEach((course) => {
+        if (simRegions.includes(course['지역명']) && course['테마분류']) {
+            themeSet.add(course['테마분류']);
+        }
+    });
+    return Array.from(themeSet);
+}
+
+function renderThemeSelector(sido, sigungu) {
+    const container = document.getElementById('theme-selector');
+    container.innerHTML = '';
+    const themes = getAvailableThemes(sido, sigungu);
+
+    if (themes.length === 0) {
+        container.innerHTML = '<div class="empty-state">유사 지역의 테마 데이터를 찾지 못했습니다.</div>';
+        return;
+    }
+
+    themes.forEach((theme) => {
+        const tag = document.createElement('button');
+        tag.type = 'button';
+        tag.className = 'theme-tag';
+        if (state.choices.theme === theme) tag.classList.add('selected');
+        tag.textContent = theme;
+        tag.addEventListener('click', () => {
+            state.choices.theme = theme;
+            state.choices.case = null;
+            document.querySelectorAll('.theme-tag').forEach((el) => el.classList.remove('selected'));
+            tag.classList.add('selected');
+            renderSimilarCases(state.selection.sido, state.selection.sigungu);
+            refreshButtons();
+        });
+        container.appendChild(tag);
+    });
+}
+
 function renderTopics(data, containerId) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
@@ -194,13 +245,13 @@ function renderTopics(data, containerId) {
     const sorted = [...data].sort((a, b) => parseNumber(b.Specialty_Score || b['Specialty_Score'] || b['LQ']) - parseNumber(a.Specialty_Score || a['Specialty_Score'] || a['LQ']));
     const maxScore = sorted.length > 0 ? parseNumber(sorted[0].Specialty_Score || sorted[0]['Specialty_Score'] || sorted[0]['LQ']) : 1;
 
-    sorted.slice(0, 8).forEach((item) => {
+    sorted.slice(0, 8).forEach((item, index) => {
         const name = item['세부주제'] || item['주제'] || item['topic'];
         const score = parseNumber(item.Specialty_Score || item['Specialty_Score'] || item['LQ']);
         const percent = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
         const row = document.createElement('div');
-        row.className = 'topic-bar';
+        row.className = `topic-bar topic-color-${(index % 6) + 1}`;
         if (state.choices.topics.includes(name)) row.classList.add('selected');
         row.innerHTML = `
             <div class="fill" style="width:${Math.max(percent, 8)}%"></div>
@@ -454,10 +505,9 @@ async function sendChatMessage() {
     if (!text) return;
     appendMessage('user', text);
     input.value = '';
-    const apiKey = document.getElementById('api-key-input')?.value.trim() || '';
     appendMessage('ai', '수정 요청을 반영해 GPT가 다시 정리하고 있습니다...');
     try {
-        const data = await callOpenAI('/api/modify-plan', { apiKey, plan: state.plan, message: text });
+        const data = await callOpenAI('/api/modify-plan', { plan: state.plan, message: text });
         appendMessage('ai', data.reply || '요청을 반영했습니다.');
     } catch (error) {
         appendMessage('ai', error.message);
