@@ -18,8 +18,11 @@
     '제주특별자치도': '제주'
 };
 
+// 트렌드 키워드 칸에 항상 함께 노출할 계절 키워드 (기획안에 계절감을 반영하기 위함)
+const SEASON_KEYWORDS = ['봄', '여름', '가을', '겨울'];
+
 const state = {
-    rawData: { libs: {}, regionScores: [], libScores: [], similar: [], courses: [], keywords: [] },
+    rawData: { libs: {}, regionScores: [], libScores: [], similar: [], courses: [], keywords: [], seoulKeywords: [] },
     selection: { sido: '', sigungu: '', library: '' },
     choices: { topics: [], theme: null, case: null, keywords: [] },
     plan: { title: '', summary: '', target: '', concept: '', flow: '' },
@@ -73,6 +76,8 @@ async function init() {
         state.rawData.similar = await loadCsv('./data/top5_similar_최종_상세근거포함.csv');
         state.rawData.courses = await loadCsv('./data/04_통합_강좌데이터_테마분류_병합.csv');
         state.rawData.keywords = await loadCsv('./data/전국_이달의키워드.csv');
+        // 서울 자치구별 인기 키워드 (1~15순위, 자치구명이 컬럼으로 되어 있는 wide 포맷)
+        state.rawData.seoulKeywords = await loadCsv('./data/서울_자치구별_인기키워드.csv');
 
         initSelectors();
         renderKeywords();
@@ -110,6 +115,7 @@ function initSelectors() {
         } else {
             sigunguSelect.disabled = true;
         }
+        renderKeywords();
         updateSelectionSummary();
         refreshButtons();
     });
@@ -128,6 +134,8 @@ function initSelectors() {
         } else {
             libSelect.disabled = true;
         }
+        // 시/군/구가 정해지는 즉시 해당 지역 맞춤 트렌드 키워드를 반영한다.
+        renderKeywords();
         updateSelectionSummary();
         refreshButtons();
     });
@@ -283,7 +291,7 @@ function renderSimilarCases(sido, sigungu) {
 
     const theme = state.choices.theme;
     if (!theme) {
-        container.innerHTML = '<div class="empty-state">위에서 테마를 선택하면 유사 사례가 표시됩니다.</div>';
+        container.innerHTML = '<div class="empty-state">유사 사례가 나타납니다</div>';
         return;
     }
 
@@ -339,23 +347,89 @@ function renderSimilarCases(sido, sigungu) {
     });
 }
 
-function renderKeywords() {
-    const container = document.getElementById('trending-keywords');
-    container.innerHTML = '';
-    const keywords = (state.rawData.keywords || []).slice(0, 10).map((item) => item['word'] || item[Object.keys(item)[0]]);
-    if (keywords.length === 0) {
-        container.innerHTML = '<div class="empty-state">키워드 데이터가 없습니다.</div>';
-        return;
+// 현재 선택된 지역(시/도, 시/군/구)에 맞는 트렌드 키워드 목록을 반환한다.
+// - 서울 + 자치구가 선택되어 있고 해당 자치구 컬럼이 서울 데이터에 있으면 1~15순위 키워드를 그대로 반환한다.
+// - 그 외(서울이 아니거나, 자치구가 없거나, 데이터에 없는 자치구)에는 기존 전국 이달의 키워드로 대체한다.
+function getRegionTrendKeywords() {
+    const { sido, sigungu } = state.selection;
+    const shortSido = normalizeSido(sido);
+    const seoulRows = state.rawData.seoulKeywords || [];
+
+    if (shortSido === '서울' && sigungu && seoulRows.length > 0 && Object.prototype.hasOwnProperty.call(seoulRows[0], sigungu)) {
+        return seoulRows
+            .map((row) => row[sigungu])
+            .filter((word) => word && String(word).trim());
     }
-    keywords.forEach((word) => {
+
+    return (state.rawData.keywords || []).slice(0, 10).map((item) => item['word'] || item[Object.keys(item)[0]]);
+}
+
+// 계절 키워드 태그 묶음을 만들어 반환한다. (트렌드 키워드보다 위쪽 섹션에 배치)
+function buildSeasonSection() {
+    const section = document.createElement('div');
+    section.className = 'keyword-section season-section';
+
+    const label = document.createElement('span');
+    label.className = 'keyword-section-label';
+    label.textContent = '계절 키워드';
+    section.appendChild(label);
+
+    const group = document.createElement('div');
+    group.className = 'keyword-tag-group';
+    SEASON_KEYWORDS.forEach((word) => {
         const tag = document.createElement('button');
         tag.type = 'button';
-        tag.className = 'keyword-tag';
+        tag.className = 'keyword-tag season-tag';
         if (state.choices.keywords.includes(word)) tag.classList.add('selected');
         tag.textContent = word;
         tag.addEventListener('click', () => toggleKeyword(word));
-        container.appendChild(tag);
+        group.appendChild(tag);
     });
+    section.appendChild(group);
+
+    return section;
+}
+
+// 지역 트렌드 키워드 태그 묶음을 만들어 반환한다. (계절 키워드보다 아래쪽 섹션에 배치)
+function buildTrendSection() {
+    const section = document.createElement('div');
+    section.className = 'keyword-section trend-section';
+
+    const label = document.createElement('span');
+    label.className = 'keyword-section-label';
+    label.textContent = '이달의 트렌드 키워드';
+    section.appendChild(label);
+
+    const keywords = getRegionTrendKeywords();
+    if (keywords.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = '키워드 데이터가 없습니다.';
+        section.appendChild(empty);
+    } else {
+        const group = document.createElement('div');
+        group.className = 'keyword-tag-group';
+        keywords.forEach((word) => {
+            const tag = document.createElement('button');
+            tag.type = 'button';
+            tag.className = 'keyword-tag';
+            if (state.choices.keywords.includes(word)) tag.classList.add('selected');
+            tag.textContent = word;
+            tag.addEventListener('click', () => toggleKeyword(word));
+            group.appendChild(tag);
+        });
+        section.appendChild(group);
+    }
+
+    return section;
+}
+
+function renderKeywords() {
+    const container = document.getElementById('trending-keywords');
+    container.innerHTML = '';
+    // 계절 키워드를 위쪽, 지역 트렌드 키워드를 아래쪽에 배치해 시각적으로 구분한다.
+    container.appendChild(buildSeasonSection());
+    container.appendChild(buildTrendSection());
 }
 
 function toggleKeyword(word) {
