@@ -759,6 +759,45 @@ function attachEvents() {
     document.getElementById('chat-input').addEventListener('keydown', (event) => {
         if (event.key === 'Enter') sendChatMessage();
     });
+    enableChatDrag();
+}
+
+function enableChatDrag() {
+    const widget = document.getElementById('chat-widget');
+    const handle = document.querySelector('#chat-widget .chat-header');
+    let dragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    handle.style.cursor = 'move';
+
+    handle.addEventListener('mousedown', (event) => {
+        if (event.target.closest('#chat-close-btn')) return;
+        dragging = true;
+        const rect = widget.getBoundingClientRect();
+        offsetX = event.clientX - rect.left;
+        offsetY = event.clientY - rect.top;
+        widget.style.right = 'auto';
+        widget.style.bottom = 'auto';
+        widget.style.left = `${rect.left}px`;
+        widget.style.top = `${rect.top}px`;
+        event.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (event) => {
+        if (!dragging) return;
+        const rect = widget.getBoundingClientRect();
+        const maxLeft = window.innerWidth - rect.width;
+        const maxTop = window.innerHeight - rect.height;
+        const newLeft = Math.min(Math.max(0, event.clientX - offsetX), maxLeft);
+        const newTop = Math.min(Math.max(0, event.clientY - offsetY), maxTop);
+        widget.style.left = `${newLeft}px`;
+        widget.style.top = `${newTop}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+        dragging = false;
+    });
 }
 
 function enhanceSelect(select) {
