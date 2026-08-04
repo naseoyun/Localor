@@ -86,9 +86,9 @@ button, select, input { font: inherit; }
     position: absolute;
     right: 100%;
     top: 50%;
-    width: 290px;
+    width: 320px;
     height: auto;
-    transform: translateY(calc(-50% - 8px)) rotate(-8deg);
+    transform: translateY(calc(-50% + 14px)) rotate(-8deg);
     margin-right: 68px;
     opacity: 0.95;
     pointer-events: none;
@@ -198,6 +198,8 @@ button, select, input { font: inherit; }
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
     margin-top: 18px;
+    border-top: 1px dashed var(--line);
+    padding-top: 18px;
 }
 .select-field {
     display: flex;
@@ -344,7 +346,19 @@ button, select, input { font: inherit; }
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
-    margin-top: 12px;
+}
+.topic-analysis-card {
+    display: flex;
+    flex-direction: column;
+}
+.topic-grid-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 14px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
 }
 .analysis-card, .topic-card, .info-card {
     background: #fcf7ef;
@@ -373,17 +387,16 @@ button, select, input { font: inherit; }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 .topic-card-head h3, .info-card h3 { margin: 0; color: var(--teal); font-family: "Jua", sans-serif; font-weight: normal; }
 .bar-list, .case-list, .keyword-list { display: flex; flex-direction: column; gap: 10px; }
+.bar-list { gap: 14px; }
 #similar-cases.case-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 12px;
     margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px dashed var(--line);
 }
 #similar-cases .case-list-heading { grid-column: 1 / -1; }
 .topic-bar.topic-bar-extra {
@@ -406,7 +419,7 @@ button, select, input { font: inherit; }
 .topic-bar {
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.3);
     cursor: pointer;
     overflow: hidden;
     position: relative;
@@ -518,22 +531,44 @@ button, select, input { font: inherit; }
     border-bottom: 1px dashed var(--line);
 }
 .season-section .keyword-tag-group {
-    gap: 16px;
+    gap: 11px;
+    flex-wrap: nowrap;
+}
+.season-tag {
+    padding: 10px 9px;
 }
 .trend-section {
     gap: 24px;
 }
 .keyword-tag.season-tag {
-    border-color: var(--sage);
-    background: #f1f4ec;
-    color: #4d5a3d;
+    border-width: 2px;
+    border-color: var(--coral);
+    background: white;
+    color: var(--ink);
+    font-weight: normal;
+}
+.season-tag-icon {
+    vertical-align: -0.2em;
+    margin-right: 2px;
 }
 .keyword-tag.season-tag.selected {
     border-color: var(--coral);
-    background: #fff1ea;
+    background: rgba(200, 84, 80, 0.38);
     color: var(--ink);
 }
-.card-hint { color: var(--muted); font-size: 0.85rem; margin: -4px 0 10px; }
+.keyword-tag.trend-tag {
+    border-width: 2px;
+    border-color: #a3bd91;
+    background: white;
+    color: var(--ink);
+}
+.keyword-tag.trend-tag.selected {
+    border-color: #a3bd91;
+    background: rgba(163, 189, 145, 0.38);
+    color: var(--ink);
+}
+.card-hint { color: var(--muted); font-size: 0.85rem; margin: -4px 0 20px; }
+#theme-selector.keyword-list { border-top: 1px dashed var(--line); padding-top: 12px; }
 .case-list-heading {
     display: flex;
     align-items: center;

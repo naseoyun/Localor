@@ -20,6 +20,7 @@
 
 // 트렌드 키워드 칸에 항상 함께 노출할 계절 키워드 (기획안에 계절감을 반영하기 위함)
 const SEASON_KEYWORDS = ['봄', '여름', '가을', '겨울'];
+const SEASON_ICONS = { '봄': 'deceased', '여름': 'sunny', '가을': 'wheat', '겨울': 'snowflake' };
 
 const state = {
     rawData: { libs: {}, regionScores: [], libScores: [], similar: [], courses: [], keywords: [], seoulKeywords: [] },
@@ -443,7 +444,8 @@ function buildSeasonSection() {
         tag.type = 'button';
         tag.className = 'keyword-tag season-tag';
         if (state.choices.keywords.includes(word)) tag.classList.add('selected');
-        tag.textContent = word;
+        tag.dataset.keyword = word;
+        tag.innerHTML = `<span class="material-symbols-outlined season-tag-icon">${SEASON_ICONS[word]}</span>${word}`;
         tag.addEventListener('click', () => toggleKeyword(word));
         group.appendChild(tag);
     });
@@ -474,8 +476,9 @@ function buildTrendSection() {
         keywords.forEach((word) => {
             const tag = document.createElement('button');
             tag.type = 'button';
-            tag.className = 'keyword-tag';
+            tag.className = 'keyword-tag trend-tag';
             if (state.choices.keywords.includes(word)) tag.classList.add('selected');
+            tag.dataset.keyword = word;
             tag.textContent = word;
             tag.addEventListener('click', () => toggleKeyword(word));
             group.appendChild(tag);
@@ -504,7 +507,7 @@ function toggleKeyword(word) {
         state.choices.keywords.push(word);
     }
     document.querySelectorAll('.keyword-tag').forEach((tag) => {
-        tag.classList.toggle('selected', state.choices.keywords.includes(tag.textContent));
+        tag.classList.toggle('selected', state.choices.keywords.includes(tag.dataset.keyword));
     });
     refreshButtons();
 }

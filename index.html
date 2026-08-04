@@ -73,23 +73,25 @@
                 <p>강점 주제, 이달의 키워드, 유사지역 사례를 모두 선택해주세요.</p>
             </div>
             <div class="analysis-grid">
-                <div class="analysis-card">
+                <div class="analysis-card topic-analysis-card">
                     <div class="analysis-card-head">
                         <h3>주제 분석 (LQ 지수)</h3>
                         <span>최대 3개 선택 가능</span>
                     </div>
-                    <div class="topic-grid">
-                        <div class="topic-card">
-                            <div class="topic-card-head">
-                                <h3><span class="material-symbols-outlined">local_library</span> 지역 강점 주제</h3>
+                    <div class="topic-grid-wrap">
+                        <div class="topic-grid">
+                            <div class="topic-card">
+                                <div class="topic-card-head">
+                                    <h3><span class="material-symbols-outlined">local_library</span> 지역 강점 주제</h3>
+                                </div>
+                                <div id="region-topics" class="bar-list">선택 대기 중...</div>
                             </div>
-                            <div id="region-topics" class="bar-list">선택 대기 중...</div>
-                        </div>
-                        <div class="topic-card">
-                            <div class="topic-card-head">
-                                <h3><span class="material-symbols-outlined">book_2</span> 도서관 강점 주제</h3>
+                            <div class="topic-card">
+                                <div class="topic-card-head">
+                                    <h3><span class="material-symbols-outlined">book_2</span> 도서관 강점 주제</h3>
+                                </div>
+                                <div id="library-topics" class="bar-list">선택 대기 중...</div>
                             </div>
-                            <div id="library-topics" class="bar-list">선택 대기 중...</div>
                         </div>
                     </div>
                 </div>
@@ -110,6 +112,7 @@
                 <div id="theme-selector" class="keyword-list">데이터를 불러오는 중입니다...</div>
                 <div id="similar-cases" class="case-list">데이터를 불러오는 중입니다...</div>
             </div>
+            <p class="plan-note">* 지역별 추가 키워드 추천은 우측 하단의 채팅창을 사용해주세요.</p>
             <div class="panel-footer">
                 <button id="back-step1-btn" class="ghost-btn">이전</button>
                 <button id="go-step3-btn" class="primary-btn" disabled>기획안 생성하기</button>
